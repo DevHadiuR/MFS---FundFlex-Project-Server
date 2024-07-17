@@ -57,29 +57,37 @@ async function run() {
     // All users collection
     app.post("/allUsers", async (req, res) => {
       const userInfo = req.body;
+      const email = userInfo.email;
+
+      const query = { email: email };
+      const isEmailExist = await userCollection.findOne(query);
+      if (isEmailExist) {
+        return res.send({ message: "Email Already Exist!" });
+      }
       const plainPin = userInfo.pinNumber;
-      console.log(userInfo, plainPin);
 
       // hashing the pin
-      bcrypt.hash(plainPin, saltRounds, (err, hashedPin) => {
+      bcrypt.hash(plainPin, saltRounds, async (err, hashedPin) => {
         if (err) {
           console.error("Error hashing PIN:", err);
           return res.status(500).send({ message: "Error hashing PIN" });
         }
 
         if (hashedPin) {
-          console.log("Hashed PIN:", hashedPin);
+          const userData = {
+            photoUrl: userInfo.photoUrl,
+            name: userInfo.name,
+            number: userInfo.number,
+            email: userInfo.email,
+            status: userInfo.status,
+            pinNumber: hashedPin,
+          };
+          console.log(userData);
+          const result = await userCollection.insertOne(userInfo);
+          res.send(result);
         }
       });
     });
-    // const email = userInfo.email;
-    // const query = { email: email };
-    // const isEmailExist = await userCollection.findOne(query);
-    // if (isEmailExist) {
-    //   return res.send({ message: "Email Already Exist!" });
-    // }
-    // const result = await userCollection.insertOne(userInfo);
-    // res.send(result);
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -88,7 +96,7 @@ async function run() {
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
