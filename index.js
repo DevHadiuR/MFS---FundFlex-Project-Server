@@ -83,10 +83,36 @@ async function run() {
             pinNumber: hashedPin,
           };
           console.log(userData);
-          const result = await userCollection.insertOne(userInfo);
+          const result = await userCollection.insertOne(userData);
           res.send(result);
         }
       });
+    });
+
+    app.post("/login-for-userInfo", async (req, res) => {
+      const { identifier, loginPinNumber } = req.body;
+      const query1 = { email: identifier };
+      const query2 = { number: identifier };
+      try {
+        let user = await userCollection.findOne(query1);
+        if (!user) {
+          user = await userCollection.findOne(query2);
+        }
+        if (!user) {
+          return res.status(404).send({ message: "User Not Found!" });
+        }
+
+        const hashedPin = user.pinNumber;
+        const isPinMatch = await bcrypt.compare(loginPinNumber, hashedPin);
+        if (!isPinMatch) {
+          return res.status(401).send({ message: "Invalid PIN" });
+        }
+
+        res.send(user);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server error" });
+      }
     });
 
     // Send a ping to confirm a successful connection
