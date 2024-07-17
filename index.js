@@ -52,6 +52,20 @@ async function run() {
       res.send({ token });
     });
 
+    // All users collection
+    app.post("/allUsers", async (req, res) => {
+      const userInfo = req.body;
+      console.log(userInfo);
+      // const email = userInfo.email;
+      // const query = { email: email };
+      // const isEmailExist = await userCollection.findOne(query);
+      // if (isEmailExist) {
+      //   return res.send({ message: "Email Already Exist!" });
+      // }
+      // const result = await userCollection.insertOne(userInfo);
+      // res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
